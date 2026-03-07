@@ -1,1 +1,0 @@
-{"manifest_version":3,"name":"Recall","description":"Save any page to read later with AI summaries","version":"1.0.0","permissions":["activeTab","storage"],"action":{"default_popup":"popup.html","default_title":"Recall"},"background":{"service_worker":"background.js"}}
