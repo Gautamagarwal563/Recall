@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
 
   const { data: user, error } = await supabase
     .from('users')
-    .select('id, passwordHash, apiToken')
+    .select('id, passwordHash, apiToken, plan')
     .eq('email', email)
     .single()
 
@@ -32,5 +32,5 @@ export async function POST(req: NextRequest) {
   cookieStore.set('userId', user.id, { httpOnly: true, path: '/', maxAge: 60 * 60 * 24 * 30 })
 
   // Return token in body so the Chrome extension can use it directly
-  return NextResponse.json({ ok: true, token: user.apiToken })
+  return NextResponse.json({ ok: true, token: user.apiToken, plan: user.plan ?? 'free' })
 }

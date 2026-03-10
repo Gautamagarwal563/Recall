@@ -32,5 +32,5 @@ export async function POST(req: NextRequest) {
   const cookieStore = await cookies()
   cookieStore.set('userId', data.id, { httpOnly: true, path: '/', maxAge: 60 * 60 * 24 * 30 })
 
-  return NextResponse.json({ ok: true, token: apiToken })
+  return NextResponse.json({ ok: true, token: apiToken, plan: 'free' })
 }

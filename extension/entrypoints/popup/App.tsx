@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-const API_BASE = 'http://localhost:3000'
+const API_BASE = 'https://rekawl.live'
 
 interface Save {
   id: string
@@ -39,8 +39,8 @@ export default function App() {
 
   // Load stored token on mount
   useEffect(() => {
-    chrome.storage.local.get(['recallToken'], result => {
-      if (result.recallToken) setToken(result.recallToken)
+    chrome.storage.local.get(['rekawlToken'], result => {
+      if (result.rekawlToken) setToken(result.rekawlToken)
     })
   }, [])
 
@@ -64,7 +64,7 @@ export default function App() {
       headers: { Authorization: `Bearer ${token}` },
     })
     if (res.status === 401) {
-      chrome.storage.local.remove('recallToken')
+      chrome.storage.local.remove('rekawlToken')
       setToken(null)
       return
     }
@@ -93,7 +93,7 @@ export default function App() {
 
     // Token is returned directly in the login/signup response
     const t = d.token
-    chrome.storage.local.set({ recallToken: t })
+    chrome.storage.local.set({ rekawlToken: t })
     setToken(t)
     setAuthLoading(false)
   }
@@ -119,7 +119,7 @@ export default function App() {
   }
 
   const handleLogout = () => {
-    chrome.storage.local.remove('recallToken')
+    chrome.storage.local.remove('rekawlToken')
     setToken(null)
     setSaves([])
   }
