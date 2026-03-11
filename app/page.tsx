@@ -689,6 +689,49 @@ export default function Home() {
           0%,100% { opacity: 0.3; }
           50%      { opacity: 0.5; }
         }
+        @keyframes navGlow {
+          0%,100% { box-shadow: 0 0 12px rgba(99,102,241,0); }
+          50%      { box-shadow: 0 0 20px rgba(99,102,241,0.25); }
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes rotateBorder {
+          0%   { background-position: 0% 50%; }
+          50%  { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        @keyframes pricingGlow {
+          0%,100% { box-shadow: 0 0 40px rgba(99,102,241,0.1), 0 0 0 1px rgba(99,102,241,0.2); }
+          50%      { box-shadow: 0 0 80px rgba(99,102,241,0.2), 0 0 0 1px rgba(99,102,241,0.4); }
+        }
+
+        .nav-pill-item {
+          position: relative; padding: 8px 14px; border-radius: 100px;
+          font-size: 13px; font-weight: 500; color: #5a5a7a;
+          text-decoration: none; transition: color 0.2s; white-space: nowrap;
+          cursor: pointer; border: none; background: transparent;
+          font-family: 'DM Sans', sans-serif;
+        }
+        .nav-pill-item:hover { color: #d0d0f0; }
+        .nav-pill-item.active { color: #fff; }
+        .nav-pill-item.active::before {
+          content: '';
+          position: absolute; inset: 0; border-radius: 100px;
+          background: rgba(99,102,241,0.18);
+          border: 1px solid rgba(99,102,241,0.3);
+          animation: navGlow 3s ease-in-out infinite;
+        }
+
+        .pricing-pro-card {
+          position: relative; border-radius: 20px; overflow: hidden;
+          animation: pricingGlow 4s ease-in-out infinite;
+        }
+        .pricing-pro-card::before {
+          content: '';
+          position: absolute; inset: -2px; border-radius: 22px; z-index: -1;
+          background: linear-gradient(135deg, #6366f1, #8b5cf6, #a78bfa, #ec4899, #6366f1);
+          background-size: 300% 300%;
+          animation: rotateBorder 5s ease infinite;
+        }
 
         .btn-primary {
           display: inline-flex; align-items: center; gap: 7px;
@@ -795,30 +838,46 @@ export default function Home() {
 
       {/* ── NAV ───────────────────────────────────────────────── */}
       <motion.nav
-        initial={{ opacity: 0, y: -8 }}
+        initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         style={{
-          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
-          height: 58, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0 32px',
-          background: 'rgba(10,10,15,0.88)', backdropFilter: 'blur(16px)',
-          borderBottom: '1px solid rgba(255,255,255,0.05)',
+          position: 'fixed', top: 14, left: '50%', transform: 'translateX(-50%)',
+          zIndex: 100, display: 'flex', alignItems: 'center', gap: 2,
+          background: 'rgba(8,8,18,0.75)', backdropFilter: 'blur(24px)',
+          borderRadius: 100, padding: '5px 6px',
+          border: '1px solid rgba(255,255,255,0.08)',
+          boxShadow: '0 8px 40px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.04) inset',
+          whiteSpace: 'nowrap',
         }}
       >
-        <Link href="/" className="wordmark" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        {/* Logo pill */}
+        <Link href="/" style={{
+          display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px',
+          borderRadius: 100, textDecoration: 'none',
+          fontFamily: "'Instrument Serif', serif", fontSize: 15,
+          color: '#f0f0fa', letterSpacing: '-0.01em',
+          background: 'rgba(255,255,255,0.04)',
+          border: '1px solid rgba(255,255,255,0.06)',
+          marginRight: 4,
+        }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="" style={{ width: 20, height: 20, mixBlendMode: 'screen' }} />
-          <span>Re<em>kawl</em></span>
+          <img src="/logo.png" alt="" style={{ width: 16, height: 16, mixBlendMode: 'screen' }} />
+          <span>Re<em style={{ color: '#6366f1', fontStyle: 'italic' }}>kawl</em></span>
         </Link>
-        <div className="nav-mid" style={{ display: 'flex', gap: 28 }}>
-          <a href="#demo" className="nav-link">Demo</a>
-          <Link href="/pricing" className="nav-link">Pricing</Link>
-        </div>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <Link href="/login" className="nav-link" style={{ padding: '7px 14px', fontSize: 14 }}>Sign in</Link>
-          <Link href="/login" className="btn-primary" style={{ padding: '8px 18px', fontSize: 13, borderRadius: 10 }}>Get started</Link>
-        </div>
+
+        <a href="#demo" className="nav-pill-item">Demo</a>
+        <Link href="/pricing" className="nav-pill-item">Pricing</Link>
+        <Link href="/support" className="nav-pill-item">Support</Link>
+        <Link href="/privacy" className="nav-pill-item">Privacy</Link>
+
+        {/* Divider */}
+        <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.08)', margin: '0 4px' }} />
+
+        <Link href="/login" className="nav-pill-item">Sign in</Link>
+        <Link href="/login" className="btn-primary" style={{ padding: '7px 16px', fontSize: 13, borderRadius: 100, marginLeft: 2 }}>
+          Get started
+        </Link>
       </motion.nav>
 
       {/* ── HERO ──────────────────────────────────────────────── */}
@@ -1139,62 +1198,106 @@ export default function Home() {
             </div>
           </FadeUp>
 
-          <div className="pricing-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div className="pricing-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+
+            {/* Free card */}
             <FadeUp delay={0}>
               <div style={{
-                padding: '36px 32px', borderRadius: 18,
-                background: 'rgba(255,255,255,0.02)',
-                border: '1px solid rgba(255,255,255,0.07)',
-                height: '100%',
-              }}>
-                <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: '#3a3a5a', letterSpacing: '0.16em', marginBottom: 16 }}>FREE</p>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 6 }}>
-                  <span style={{ fontFamily: "'Instrument Serif', serif", fontSize: 52, color: '#f2f2fa', fontWeight: 400, lineHeight: 1 }}>$0</span>
+                padding: '38px 34px', borderRadius: 20, height: '100%',
+                background: 'rgba(255,255,255,0.025)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                transition: 'border-color 0.3s, transform 0.3s, box-shadow 0.3s',
+              }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.15)'
+                  ;(e.currentTarget as HTMLDivElement).style.transform = 'translateY(-4px)'
+                  ;(e.currentTarget as HTMLDivElement).style.boxShadow = '0 20px 60px rgba(0,0,0,0.3)'
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.08)'
+                  ;(e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)'
+                  ;(e.currentTarget as HTMLDivElement).style.boxShadow = 'none'
+                }}
+              >
+                <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: '#3a3a5a', letterSpacing: '0.18em', marginBottom: 20 }}>FREE PLAN</p>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 4 }}>
+                  <span style={{ fontFamily: "'Instrument Serif', serif", fontSize: 56, color: '#f2f2fa', fontWeight: 400, lineHeight: 1 }}>$0</span>
                   <span style={{ fontSize: 14, color: '#2a2a4a' }}>/month</span>
                 </div>
-                <p style={{ fontSize: 14, color: '#2a2a4a', marginBottom: 28, fontWeight: 300 }}>for trying things out</p>
-                {['10 saves/month', 'Pages, images, text', 'AI summaries + tags', 'Full-text search'].map(f => (
-                  <div key={f} style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 10 }}>
-                    <span style={{ color: '#6366f1', fontSize: 10, fontFamily: "'DM Mono', monospace", flexShrink: 0 }}>✓</span>
-                    <span style={{ fontSize: 14, color: '#5a5a7a', fontWeight: 300 }}>{f}</span>
+                <p style={{ fontSize: 14, color: '#2a2a4a', marginBottom: 32, fontWeight: 300 }}>for trying things out</p>
+                <div style={{ height: 1, background: 'rgba(255,255,255,0.05)', marginBottom: 24 }} />
+                {[
+                  { label: '10 saves/month', note: '' },
+                  { label: 'Pages, images, text', note: '' },
+                  { label: 'AI summaries + tags', note: '' },
+                  { label: 'Full-text search', note: '' },
+                ].map(f => (
+                  <div key={f.label} style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 12 }}>
+                    <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <span style={{ color: '#6366f1', fontSize: 9 }}>✓</span>
+                    </div>
+                    <span style={{ fontSize: 14, color: '#5a5a7a', fontWeight: 300 }}>{f.label}</span>
                   </div>
                 ))}
-                <Link href="/login" style={{ display: 'block', marginTop: 28, padding: '12px 0', textAlign: 'center', borderRadius: 11, border: '1px solid rgba(255,255,255,0.1)', color: '#f2f2fa', textDecoration: 'none', fontSize: 14, fontWeight: 500, transition: 'background 0.15s' }}
-                  onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.04)')}
-                  onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.background = 'transparent')}
+                <Link href="/login" style={{
+                  display: 'block', marginTop: 32, padding: '13px 0', textAlign: 'center',
+                  borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#f2f2fa', textDecoration: 'none', fontSize: 14, fontWeight: 500,
+                  transition: 'background 0.15s, border-color 0.15s',
+                }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.05)'; (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(255,255,255,0.2)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'; (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(255,255,255,0.1)' }}
                 >Start free</Link>
               </div>
             </FadeUp>
 
-            <FadeUp delay={0.1}>
-              <div style={{
-                padding: '36px 32px', borderRadius: 18, position: 'relative', overflow: 'hidden',
-                background: 'linear-gradient(145deg, #0f0f20, #111128)',
-                border: '1px solid rgba(99,102,241,0.28)',
-                boxShadow: '0 0 48px rgba(99,102,241,0.07)',
-                height: '100%',
-              }}>
-                <div style={{ position: 'absolute', top: -50, right: -50, width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.2), transparent 70%)', filter: 'blur(20px)', pointerEvents: 'none' }} />
-                <div style={{ position: 'relative', zIndex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                    <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: '#8b8cf8', letterSpacing: '0.16em' }}>PRO</p>
-                    <span style={{ padding: '2px 8px', borderRadius: 100, fontSize: 9, background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)', color: '#8b8cf8', fontFamily: "'DM Mono', monospace" }}>POPULAR</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 6 }}>
-                    <span style={{ fontFamily: "'Instrument Serif', serif", fontSize: 52, color: '#f2f2fa', fontWeight: 400, lineHeight: 1 }}>$5</span>
-                    <span style={{ fontSize: 14, color: '#4a4a6a' }}>/month</span>
-                  </div>
-                  <p style={{ fontSize: 14, color: '#3a3a5a', marginBottom: 28, fontWeight: 300 }}>for people who actually browse</p>
-                  {['Unlimited saves', 'Priority processing', 'Full search history', 'Everything in Free'].map(f => (
-                    <div key={f} style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 10 }}>
-                      <span style={{ color: '#8b5cf6', fontSize: 10, fontFamily: "'DM Mono', monospace", flexShrink: 0 }}>✦</span>
-                      <span style={{ fontSize: 14, color: '#5a5a80', fontWeight: 300 }}>{f}</span>
+            {/* Pro card — animated gradient border */}
+            <FadeUp delay={0.12}>
+              <div className="pricing-pro-card" style={{ height: '100%' }}>
+                <div style={{
+                  padding: '38px 34px', borderRadius: 20, height: '100%',
+                  background: 'linear-gradient(145deg, #0e0e1e, #121228)',
+                  position: 'relative', overflow: 'hidden',
+                }}>
+                  {/* Corner glow */}
+                  <div style={{ position: 'absolute', top: -60, right: -60, width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.25), transparent 70%)', filter: 'blur(24px)', pointerEvents: 'none' }} />
+                  <div style={{ position: 'absolute', bottom: -40, left: -40, width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle, rgba(139,92,246,0.15), transparent 70%)', filter: 'blur(20px)', pointerEvents: 'none' }} />
+
+                  <div style={{ position: 'relative', zIndex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+                      <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: '#8b8cf8', letterSpacing: '0.18em' }}>PRO PLAN</p>
+                      <span style={{
+                        padding: '3px 10px', borderRadius: 100, fontSize: 9,
+                        background: 'linear-gradient(135deg,rgba(99,102,241,0.2),rgba(139,92,246,0.2))',
+                        border: '1px solid rgba(99,102,241,0.35)', color: '#a5b4fc',
+                        fontFamily: "'DM Mono', monospace", letterSpacing: '0.08em',
+                        boxShadow: '0 0 12px rgba(99,102,241,0.2)',
+                      }}>★ POPULAR</span>
                     </div>
-                  ))}
-                  <Link href="/pricing" style={{ display: 'block', marginTop: 28, padding: '12px 0', textAlign: 'center', borderRadius: 11, background: '#6366f1', color: '#fff', textDecoration: 'none', fontSize: 14, fontWeight: 500, boxShadow: '0 4px 16px rgba(99,102,241,0.35)', transition: 'background 0.15s' }}
-                    onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.background = '#5254e7')}
-                    onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.background = '#6366f1')}
-                  >Get Pro →</Link>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 4 }}>
+                      <span style={{ fontFamily: "'Instrument Serif', serif", fontSize: 56, color: '#f2f2fa', fontWeight: 400, lineHeight: 1 }}>$5</span>
+                      <span style={{ fontSize: 14, color: '#4a4a6a' }}>/month</span>
+                    </div>
+                    <p style={{ fontSize: 14, color: '#3a3a5a', marginBottom: 32, fontWeight: 300 }}>for people who actually browse</p>
+                    <div style={{ height: 1, background: 'rgba(99,102,241,0.15)', marginBottom: 24 }} />
+                    {[
+                      { label: 'Unlimited saves', highlight: true },
+                      { label: 'Priority AI processing', highlight: false },
+                      { label: 'Full search history', highlight: false },
+                      { label: 'Everything in Free', highlight: false },
+                    ].map(f => (
+                      <div key={f.label} style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 12 }}>
+                        <div style={{ width: 18, height: 18, borderRadius: '50%', background: f.highlight ? 'rgba(139,92,246,0.2)' : 'rgba(99,102,241,0.1)', border: `1px solid ${f.highlight ? 'rgba(139,92,246,0.4)' : 'rgba(99,102,241,0.2)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <span style={{ color: f.highlight ? '#a78bfa' : '#6366f1', fontSize: 9 }}>✦</span>
+                        </div>
+                        <span style={{ fontSize: 14, color: f.highlight ? '#c4c6ff' : '#5a5a80', fontWeight: f.highlight ? 500 : 300 }}>{f.label}</span>
+                      </div>
+                    ))}
+                    <Link href="/pricing" className="btn-primary" style={{
+                      display: 'block', marginTop: 32, padding: '13px 0', textAlign: 'center',
+                      borderRadius: 12, textDecoration: 'none', fontSize: 14,
+                    }}>Get Pro →</Link>
+                  </div>
                 </div>
               </div>
             </FadeUp>
