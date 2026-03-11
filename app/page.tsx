@@ -623,6 +623,7 @@ function LiveDemo() {
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 export default function Home() {
   const [mouse, setMouse] = useState({ x: -999, y: -999 })
+  const [menuOpen, setMenuOpen] = useState(false)
   const heroRef = useRef<HTMLElement>(null)
 
   const handleHeroMouseMove = (e: React.MouseEvent<HTMLElement>) => {
@@ -824,15 +825,32 @@ export default function Home() {
 
         .section-label { font-family: 'DM Mono', monospace; font-size: 10px; color: #4a4a6a; letter-spacing: 0.18em; text-transform: uppercase; }
 
-        @media (max-width: 900px) {
-          .nav-mid { display: none !important; }
+        .nav-pills-mid { display: flex; }
+        .nav-pills-right { display: flex; }
+        .nav-hamburger { display: none; }
+        .mobile-menu { display: none; }
+
+        @media (max-width: 760px) {
+          .nav-pills-mid { display: none !important; }
+          .nav-pills-right { display: none !important; }
+          .nav-hamburger { display: flex !important; }
+          .mobile-menu { display: flex !important; }
           .demo-grid { grid-template-columns: 1fr !important; }
           .features-grid { grid-template-columns: 1fr !important; }
           .pricing-grid { grid-template-columns: 1fr !important; }
+          .stats-grid { grid-template-columns: 1fr !important; }
           .footer-inner { flex-direction: column !important; align-items: flex-start !important; gap: 20px !important; }
+          .hero-btns { flex-direction: column !important; align-items: stretch !important; width: 100%; max-width: 320px; }
+          .hero-btns a, .hero-btns button { justify-content: center !important; width: 100% !important; }
+          .hero-h1 { font-size: clamp(40px, 12vw, 64px) !important; }
+          .section-pad { padding: 64px 20px !important; }
+          .stat-card { border-radius: 14px !important; }
+          .pricing-pro-card { margin-top: 0; }
+          .footer-links { flex-wrap: wrap !important; gap: 12px !important; }
+          .feature-card { border-right: none !important; }
         }
-        @media (max-width: 600px) {
-          .hero-h1 { font-size: clamp(44px, 13vw, 72px) !important; }
+        @media (max-width: 480px) {
+          .hero-h1 { font-size: clamp(36px, 11vw, 56px) !important; }
         }
       `}</style>
 
@@ -867,20 +885,86 @@ export default function Home() {
           <span>Re<em style={{ color: '#6366f1', fontStyle: 'italic' }}>kawl</em></span>
         </Link>
 
-        <a href="#demo" className="nav-pill-item">Demo</a>
-        <Link href="/pricing" className="nav-pill-item">Pricing</Link>
-        <Link href="/support" className="nav-pill-item">Support</Link>
-        <Link href="/privacy" className="nav-pill-item">Privacy</Link>
+        {/* Desktop links */}
+        <div className="nav-pills-mid" style={{ alignItems: 'center', gap: 2 }}>
+          <a href="#demo" className="nav-pill-item">Demo</a>
+          <Link href="/pricing" className="nav-pill-item">Pricing</Link>
+          <Link href="/support" className="nav-pill-item">Support</Link>
+          <Link href="/privacy" className="nav-pill-item">Privacy</Link>
+        </div>
 
-        {/* Divider */}
-        <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.08)', margin: '0 4px' }} />
+        <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.08)', margin: '0 4px' }} className="nav-pills-mid" />
 
-        <Link href="/login" className="nav-pill-item">Sign in</Link>
-        <Link href="/login" className="btn-primary" style={{ padding: '7px 16px', fontSize: 13, borderRadius: 100, marginLeft: 2 }}>
-          Get started
-        </Link>
+        <div className="nav-pills-right" style={{ alignItems: 'center', gap: 4 }}>
+          <Link href="/login" className="nav-pill-item">Sign in</Link>
+          <Link href="/login" className="btn-primary" style={{ padding: '7px 16px', fontSize: 13, borderRadius: 100, marginLeft: 2 }}>
+            Get started
+          </Link>
+        </div>
+
+        {/* Hamburger */}
+        <button
+          className="nav-hamburger"
+          onClick={() => setMenuOpen(o => !o)}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            display: 'flex', flexDirection: 'column', gap: 4, padding: '6px 8px',
+            alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          <span style={{ display: 'block', width: 18, height: 1.5, background: menuOpen ? 'transparent' : '#a0a0c0', transition: 'all 0.2s', transform: menuOpen ? 'rotate(45deg) translate(4px,4px)' : 'none' }} />
+          <span style={{ display: 'block', width: 18, height: 1.5, background: '#a0a0c0', transition: 'all 0.2s', transform: menuOpen ? 'rotate(-45deg)' : 'none', marginTop: menuOpen ? '-5px' : '0' }} />
+          {!menuOpen && <span style={{ display: 'block', width: 18, height: 1.5, background: '#a0a0c0' }} />}
+        </button>
       </motion.nav>
       </div>
+
+      {/* Mobile dropdown */}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            style={{
+              position: 'fixed', top: 68, left: 16, right: 16, zIndex: 99,
+              background: 'rgba(10,10,20,0.95)', backdropFilter: 'blur(24px)',
+              borderRadius: 18, border: '1px solid rgba(255,255,255,0.08)',
+              boxShadow: '0 16px 48px rgba(0,0,0,0.5)',
+              padding: '8px',
+            }}
+          >
+            {[
+              { label: 'Demo', href: '#demo' },
+              { label: 'Pricing', href: '/pricing' },
+              { label: 'Support', href: '/support' },
+              { label: 'Privacy', href: '/privacy' },
+              { label: 'Sign in', href: '/login' },
+            ].map((item, i) => (
+              <Link key={item.label} href={item.href}
+                onClick={() => setMenuOpen(false)}
+                style={{
+                  display: 'block', padding: '12px 16px', borderRadius: 12,
+                  color: '#8080a0', textDecoration: 'none', fontSize: 15, fontWeight: 500,
+                  transition: 'background 0.15s, color 0.15s',
+                  borderBottom: i < 4 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.04)'; (e.currentTarget as HTMLAnchorElement).style.color = '#f0f0fa' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'; (e.currentTarget as HTMLAnchorElement).style.color = '#8080a0' }}
+              >
+                {item.label}
+              </Link>
+            ))}
+            <Link href="/login" className="btn-primary"
+              onClick={() => setMenuOpen(false)}
+              style={{ display: 'block', textAlign: 'center', margin: '8px 0 4px', borderRadius: 12, padding: '13px' }}
+            >
+              Get started free
+            </Link>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── HERO ──────────────────────────────────────────────── */}
       <section
@@ -945,7 +1029,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 20 }}
+            className="hero-btns" style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 20 }}
           >
             <Link href="/login" className="btn-primary">Get started free</Link>
             <a href="#demo" className="btn-rainbow-border">See it in action ↓</a>
@@ -979,7 +1063,7 @@ export default function Home() {
         borderBottom: '1px solid rgba(255,255,255,0.04)',
         padding: '56px 32px',
       }}>
-        <div style={{
+        <div className="stats-grid" style={{
           maxWidth: 860, margin: '0 auto',
           display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
           gap: 2,
@@ -993,7 +1077,7 @@ export default function Home() {
               <div className="stat-card" style={{
                 padding: '32px 28px',
                 border: '1px solid rgba(99,102,241,0.12)',
-                borderRadius: i === 0 ? '14px 0 0 14px' : i === 2 ? '0 14px 14px 0' : '0',
+                borderRadius: 14,
                 background: 'rgba(99,102,241,0.03)',
                 textAlign: 'center',
               }}>
@@ -1016,7 +1100,7 @@ export default function Home() {
       </div>
 
       {/* ── PRODUCT DEMO ──────────────────────────────────────── */}
-      <section id="demo" style={{
+      <section id="demo" className="section-pad" style={{
         background: '#050508',
         borderTop: '1px solid rgba(255,255,255,0.05)',
         padding: '96px 32px',
@@ -1109,7 +1193,7 @@ export default function Home() {
       </section>
 
       {/* ── HOW IT WORKS ──────────────────────────────────────── */}
-      <section style={{
+      <section className="section-pad" style={{
         background: '#0a0a0f',
         borderTop: '1px solid rgba(255,255,255,0.05)',
         padding: '96px 32px',
@@ -1180,7 +1264,7 @@ export default function Home() {
       </section>
 
       {/* ── PRICING TEASER ────────────────────────────────────── */}
-      <section style={{
+      <section className="section-pad" style={{
         background: '#050508',
         borderTop: '1px solid rgba(255,255,255,0.05)',
         padding: '96px 32px',
@@ -1308,7 +1392,7 @@ export default function Home() {
       </section>
 
       {/* ── FINAL CTA ─────────────────────────────────────────── */}
-      <section style={{
+      <section className="section-pad" style={{
         background: '#0a0a0f', padding: '100px 32px',
         borderTop: '1px solid rgba(255,255,255,0.05)',
         textAlign: 'center', position: 'relative', overflow: 'hidden',
