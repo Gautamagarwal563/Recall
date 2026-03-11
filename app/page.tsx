@@ -1022,7 +1022,7 @@ export default function Home() {
             <span>Re<em style={{ color: '#3a3a6a' }}>kawl</em></span>
           </Link>
           <div style={{ display: 'flex', gap: 24 }}>
-            {[['Pricing', '/pricing'], ['Sign in', '/login']].map(([label, href]) => (
+            {[['Pricing', '/pricing'], ['Support', '/support'], ['Privacy', '/privacy'], ['Sign in', '/login']].map(([label, href]) => (
               <Link key={label} href={href} style={{ fontSize: 11, color: '#2a2a4a', textDecoration: 'none', fontFamily: "'DM Mono', monospace", letterSpacing: '0.08em', transition: 'color 0.15s' }}
                 onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.color = '#5a5a7a')}
                 onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.color = '#2a2a4a')}
