@@ -21,6 +21,52 @@ function FadeUp({ children, delay = 0, className = '' }: { children: React.React
   )
 }
 
+// ─── Marquee ──────────────────────────────────────────────────────────────────
+const MARQUEE_ITEMS = [
+  '⊕ startup strategy', '◈ deep work', '◎ api design', '⊕ product-market fit',
+  '◈ habit formation', '◎ pricing models', '⊕ system design', '◈ vc memos',
+  '◎ writing tips', '⊕ design systems', '◈ mental models', '◎ founder stories',
+  '⊕ ai research', '◈ compounding', '◎ first principles',
+]
+const MARQUEE_ITEMS_2 = [
+  '⊕ newsletters', '◈ long reads', '◎ research papers', '⊕ twitter threads',
+  '◈ youtube talks', '◎ blog posts', '⊕ case studies', '◈ technical docs',
+  '◎ book summaries', '⊕ product teardowns', '◈ interview transcripts',
+]
+
+function Marquee({ items, reverse = false }: { items: string[]; reverse?: boolean }) {
+  const doubled = [...items, ...items]
+  return (
+    <div style={{ overflow: 'hidden', maskImage: 'linear-gradient(90deg, transparent, black 8%, black 92%, transparent)' }}>
+      <div style={{
+        display: 'flex', gap: 10, width: 'max-content',
+        animation: `${reverse ? 'marqueeReverse' : 'marquee'} 35s linear infinite`,
+      }}>
+        {doubled.map((item, i) => (
+          <div key={i} style={{
+            padding: '6px 16px', borderRadius: 100, whiteSpace: 'nowrap',
+            border: '1px solid rgba(99,102,241,0.12)',
+            background: 'rgba(99,102,241,0.04)',
+            fontSize: 11, color: '#4a4a6a',
+            fontFamily: "'DM Mono', monospace", letterSpacing: '0.08em',
+          }}>{item}</div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ─── CountUp ──────────────────────────────────────────────────────────────────
+function CountUp({ to, suffix = '' }: { to: string; suffix?: string }) {
+  const ref = useRef(null)
+  const inView = useInView(ref, { once: true })
+  return (
+    <span ref={ref} style={{ opacity: inView ? 1 : 0, transform: inView ? 'translateY(0)' : 'translateY(12px)', transition: 'opacity 0.7s, transform 0.7s' }}>
+      {to}{suffix}
+    </span>
+  )
+}
+
 // ─── Demo data ─────────────────────────────────────────────────────────────────
 const DEMO_ARTICLES = [
   {
@@ -602,6 +648,41 @@ export default function Home() {
           0%,100% { transform: translateY(0px); }
           50%      { transform: translateY(-10px); }
         }
+        @keyframes marquee { from { transform: translateX(0) } to { transform: translateX(-50%) } }
+        @keyframes marqueeReverse { from { transform: translateX(-50%) } to { transform: translateX(0) } }
+        @keyframes btnShine {
+          0% { left: -80% }
+          60%,100% { left: 120% }
+        }
+        @keyframes borderGlow {
+          0%,100% { border-color: rgba(99,102,241,0.2); box-shadow: 0 0 0 rgba(99,102,241,0); }
+          50%      { border-color: rgba(99,102,241,0.5); box-shadow: 0 0 24px rgba(99,102,241,0.15); }
+        }
+        @keyframes countUp { from { opacity:0; transform: translateY(12px); } to { opacity:1; transform: translateY(0); } }
+
+        .btn-primary { position: relative; overflow: hidden; }
+        .btn-primary::after {
+          content: '';
+          position: absolute; top: 0; left: -80%; width: 50%; height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+          animation: btnShine 3.5s ease-in-out infinite;
+          pointer-events: none;
+        }
+        .feature-card {
+          transition: background 0.2s, border-color 0.2s, box-shadow 0.25s, transform 0.2s;
+        }
+        .feature-card:hover {
+          background: rgba(99,102,241,0.05) !important;
+          border-color: rgba(99,102,241,0.18) !important;
+          box-shadow: 0 0 40px rgba(99,102,241,0.08);
+          transform: translateY(-2px);
+        }
+        .stat-card {
+          transition: border-color 0.3s, box-shadow 0.3s;
+          animation: borderGlow 4s ease-in-out infinite;
+        }
+        .stat-card:nth-child(2) { animation-delay: 1.3s; }
+        .stat-card:nth-child(3) { animation-delay: 2.6s; }
 
         .wordmark { font-family: 'Instrument Serif', serif; font-size: 22px; color: #f2f2fa; text-decoration: none; letter-spacing: -0.01em; }
         .wordmark em { color: #6366f1; font-style: italic; }
@@ -734,6 +815,60 @@ export default function Home() {
           </motion.p>
         </div>
       </section>
+
+      {/* ── MARQUEE STRIP ─────────────────────────────────────── */}
+      <div style={{
+        background: '#050508',
+        borderTop: '1px solid rgba(255,255,255,0.04)',
+        padding: '20px 0', overflow: 'hidden',
+        display: 'flex', flexDirection: 'column', gap: 10,
+      }}>
+        <Marquee items={MARQUEE_ITEMS} />
+        <Marquee items={MARQUEE_ITEMS_2} reverse />
+      </div>
+
+      {/* ── STATS STRIP ───────────────────────────────────────── */}
+      <div style={{
+        background: '#050508',
+        borderTop: '1px solid rgba(255,255,255,0.04)',
+        borderBottom: '1px solid rgba(255,255,255,0.04)',
+        padding: '56px 32px',
+      }}>
+        <div style={{
+          maxWidth: 860, margin: '0 auto',
+          display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: 2,
+        }}>
+          {[
+            { num: '< 3s', label: 'AI summary generated', sub: 'powered by Claude' },
+            { num: '3–5', label: 'auto-tags per save', sub: 'zero manual effort' },
+            { num: '100%', label: 'full-text search', sub: 'across all your saves' },
+          ].map((stat, i) => (
+            <FadeUp key={stat.label} delay={i * 0.1}>
+              <div className="stat-card" style={{
+                padding: '32px 28px',
+                border: '1px solid rgba(99,102,241,0.12)',
+                borderRadius: i === 0 ? '14px 0 0 14px' : i === 2 ? '0 14px 14px 0' : '0',
+                background: 'rgba(99,102,241,0.03)',
+                textAlign: 'center',
+              }}>
+                <div style={{
+                  fontFamily: "'Instrument Serif', serif",
+                  fontSize: 'clamp(36px, 5vw, 52px)',
+                  color: '#f2f2fa', fontWeight: 400, lineHeight: 1,
+                  marginBottom: 10, letterSpacing: '-0.02em',
+                }}>
+                  <CountUp to={stat.num} />
+                </div>
+                <p style={{ fontSize: 13, color: '#6060a0', fontWeight: 500, marginBottom: 4 }}>{stat.label}</p>
+                <p style={{ fontSize: 10, color: '#2a2a4a', fontFamily: "'DM Mono', monospace", letterSpacing: '0.1em' }}>
+                  {stat.sub.toUpperCase()}
+                </p>
+              </div>
+            </FadeUp>
+          ))}
+        </div>
+      </div>
 
       {/* ── PRODUCT DEMO ──────────────────────────────────────── */}
       <section id="demo" style={{
@@ -873,15 +1008,13 @@ export default function Home() {
               },
             ].map((f, i) => (
               <FadeUp key={f.num} delay={i * 0.1}>
-                <div style={{
+                <div className="feature-card" style={{
                   padding: '36px 32px',
                   borderTop: '1px solid rgba(255,255,255,0.06)',
                   borderRight: i < 2 ? '1px solid rgba(255,255,255,0.06)' : 'none',
-                  transition: 'background 0.2s',
-                }}
-                  onMouseEnter={e => ((e.currentTarget as HTMLDivElement).style.background = 'rgba(99,102,241,0.03)')}
-                  onMouseLeave={e => ((e.currentTarget as HTMLDivElement).style.background = 'transparent')}
-                >
+                  borderBottom: '1px solid transparent',
+                  borderLeft: '1px solid transparent',
+                }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
                     <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 22, color: '#6366f1' }}>{f.sym}</span>
                     <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: '#2a2a4a' }}>{f.num}</span>

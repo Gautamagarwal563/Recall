@@ -191,7 +191,7 @@ function DashboardInner() {
 
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.2} }
         @keyframes slideDown { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes cardIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes cardIn { from{opacity:0;transform:translateY(16px) scale(0.98)} to{opacity:1;transform:translateY(0) scale(1)} }
         @keyframes shimmer {
           0%{background-position:-400px 0} 100%{background-position:400px 0}
         }
@@ -206,25 +206,33 @@ function DashboardInner() {
         .nav-item {
           display:flex; align-items:center; justify-content:space-between;
           padding:8px 12px; border-radius:9px; cursor:pointer;
-          font-size:13px; color:#5a5a80; transition:all 0.15s;
+          font-size:13px; color:#5a5a80; transition:all 0.2s;
           border:none; background:transparent; width:100%; text-align:left;
           font-family:'DM Sans',sans-serif;
         }
-        .nav-item:hover { background:rgba(255,255,255,0.04); color:#9090b0; }
-        .nav-item.active { background:rgba(99,102,241,0.12); color:#c4c6ff; }
+        .nav-item:hover { background:rgba(255,255,255,0.04); color:#9090b0; transform:translateX(2px); }
+        .nav-item.active { background:rgba(99,102,241,0.12); color:#c4c6ff; border-left:2px solid #6366f1; padding-left:10px; }
 
         .save-card {
           background:#0e0e1c;
           border:1px solid rgba(255,255,255,0.06);
           border-radius:14px;
-          transition:border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+          transition:border-color 0.25s, box-shadow 0.25s, transform 0.2s;
           position:relative;
           overflow:hidden;
         }
+        .save-card::before {
+          content:'';
+          position:absolute; inset:0; border-radius:14px;
+          background: radial-gradient(600px circle at var(--mouse-x, -999px) var(--mouse-y, -999px), rgba(99,102,241,0.08), transparent 40%);
+          pointer-events:none; z-index:0; opacity:0;
+          transition:opacity 0.3s;
+        }
+        .save-card:hover::before { opacity:1; }
         .save-card:hover {
-          border-color:rgba(99,102,241,0.25);
-          box-shadow:0 8px 40px rgba(0,0,0,0.35);
-          transform:translateY(-1px);
+          border-color:rgba(99,102,241,0.3);
+          box-shadow:0 12px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(99,102,241,0.08);
+          transform:translateY(-2px);
         }
         .card-actions {
           opacity:0; transition:opacity 0.15s;
@@ -239,8 +247,9 @@ function DashboardInner() {
           transition:border-color 0.2s, box-shadow 0.2s;
         }
         .search-wrap:focus-within {
-          border-color:rgba(99,102,241,0.35);
-          box-shadow:0 0 0 3px rgba(99,102,241,0.07);
+          border-color:rgba(99,102,241,0.4);
+          box-shadow:0 0 0 3px rgba(99,102,241,0.08), 0 4px 20px rgba(99,102,241,0.1);
+          background:rgba(255,255,255,0.05);
         }
         .search-input {
           flex:1; background:none; border:none; outline:none;
@@ -640,13 +649,24 @@ function SaveCard({
   const isImage = save.type === 'image'
   const isText = save.type === 'text'
 
+  const cardRef = useRef<HTMLDivElement>(null)
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = cardRef.current?.getBoundingClientRect()
+    if (!rect) return
+    cardRef.current?.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`)
+    cardRef.current?.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`)
+  }
+
   return (
     <div
+      ref={cardRef}
       className="save-card card-in"
+      onMouseMove={handleMouseMove}
       style={{
-        animationDelay:`${index * 0.03}s`,
-        opacity: save.isRead ? 0.5 : 1,
-        transition:'opacity 0.2s',
+        animationDelay:`${index * 0.04}s`,
+        opacity: save.isRead ? 0.45 : 1,
+        transition:'opacity 0.3s',
         display:'flex', flexDirection:'column',
       }}
     >
