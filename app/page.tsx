@@ -837,13 +837,14 @@ export default function Home() {
       `}</style>
 
       {/* ── NAV ───────────────────────────────────────────────── */}
+      <div style={{ position: 'fixed', top: 14, left: 0, right: 0, zIndex: 100, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
       <motion.nav
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         style={{
-          position: 'fixed', top: 14, left: '50%', transform: 'translateX(-50%)',
-          zIndex: 100, display: 'flex', alignItems: 'center', gap: 2,
+          pointerEvents: 'auto',
+          display: 'flex', alignItems: 'center', gap: 2,
           background: 'rgba(8,8,18,0.75)', backdropFilter: 'blur(24px)',
           borderRadius: 100, padding: '5px 6px',
           border: '1px solid rgba(255,255,255,0.08)',
@@ -879,6 +880,7 @@ export default function Home() {
           Get started
         </Link>
       </motion.nav>
+      </div>
 
       {/* ── HERO ──────────────────────────────────────────────── */}
       <section
