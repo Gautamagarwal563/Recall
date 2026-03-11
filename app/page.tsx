@@ -622,6 +622,16 @@ function LiveDemo() {
 
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 export default function Home() {
+  const [mouse, setMouse] = useState({ x: -999, y: -999 })
+  const heroRef = useRef<HTMLElement>(null)
+
+  const handleHeroMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+    const rect = heroRef.current?.getBoundingClientRect()
+    if (!rect) return
+    setMouse({ x: e.clientX - rect.left, y: e.clientY - rect.top })
+  }
+  const handleHeroMouseLeave = () => setMouse({ x: -999, y: -999 })
+
   return (
     <>
       <style>{`
@@ -650,6 +660,16 @@ export default function Home() {
         }
         @keyframes marquee { from { transform: translateX(0) } to { transform: translateX(-50%) } }
         @keyframes marqueeReverse { from { transform: translateX(-50%) } to { transform: translateX(0) } }
+        @keyframes gradientRotate {
+          0%   { background-position: 0% 50%; }
+          50%  { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        @keyframes rainbowBorder {
+          0%   { background-position: 0% 50%; }
+          50%  { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
         @keyframes btnShine {
           0% { left: -80% }
           60%,100% { left: 120% }
@@ -659,14 +679,73 @@ export default function Home() {
           50%      { border-color: rgba(99,102,241,0.5); box-shadow: 0 0 24px rgba(99,102,241,0.15); }
         }
         @keyframes countUp { from { opacity:0; transform: translateY(12px); } to { opacity:1; transform: translateY(0); } }
+        @keyframes aurora {
+          0%,100% { transform: translate(0,0) scale(1) rotate(0deg); }
+          25%      { transform: translate(40px,-30px) scale(1.08) rotate(5deg); }
+          50%      { transform: translate(-20px,20px) scale(0.94) rotate(-3deg); }
+          75%      { transform: translate(15px,35px) scale(1.04) rotate(2deg); }
+        }
+        @keyframes gridFade {
+          0%,100% { opacity: 0.3; }
+          50%      { opacity: 0.5; }
+        }
 
-        .btn-primary { position: relative; overflow: hidden; }
+        .btn-primary {
+          display: inline-flex; align-items: center; gap: 7px;
+          padding: 13px 26px; border-radius: 12px;
+          background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 40%, #a78bfa 70%, #6366f1 100%);
+          background-size: 250% 250%;
+          animation: gradientRotate 5s ease infinite;
+          color: #fff;
+          font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif;
+          text-decoration: none; border: none; cursor: pointer;
+          box-shadow: 0 4px 24px rgba(99,102,241,0.5), 0 1px 0 rgba(255,255,255,0.1) inset;
+          transition: transform 0.15s, box-shadow 0.15s;
+          position: relative; overflow: hidden;
+        }
+        .btn-primary:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 36px rgba(99,102,241,0.65), 0 1px 0 rgba(255,255,255,0.1) inset;
+        }
         .btn-primary::after {
           content: '';
           position: absolute; top: 0; left: -80%; width: 50%; height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent);
           animation: btnShine 3.5s ease-in-out infinite;
           pointer-events: none;
+        }
+
+        /* Rainbow border button variant */
+        .btn-rainbow-border {
+          display: inline-flex; align-items: center; gap: 7px;
+          padding: 13px 26px; border-radius: 12px;
+          background: #0a0a0f; color: #f2f2fa;
+          font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif;
+          text-decoration: none; cursor: pointer;
+          position: relative; overflow: hidden;
+          transition: transform 0.15s, color 0.15s;
+          z-index: 0;
+        }
+        .btn-rainbow-border::before {
+          content: '';
+          position: absolute; inset: -2px; border-radius: 14px; z-index: -1;
+          background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899, #f59e0b, #6366f1);
+          background-size: 300% 300%;
+          animation: rainbowBorder 4s ease infinite;
+        }
+        .btn-rainbow-border::after {
+          content: '';
+          position: absolute; inset: 1px; border-radius: 11px; z-index: -1;
+          background: #0d0d18;
+        }
+        .btn-rainbow-border:hover { transform: translateY(-2px); color: #fff; }
+
+        .hero-dot-grid {
+          position: absolute; inset: 0; pointer-events: none;
+          background-image: radial-gradient(circle, rgba(99,102,241,0.25) 1px, transparent 1px);
+          background-size: 32px 32px;
+          mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+          animation: gridFade 8s ease-in-out infinite;
         }
         .feature-card {
           transition: background 0.2s, border-color 0.2s, box-shadow 0.25s, transform 0.2s;
@@ -689,17 +768,6 @@ export default function Home() {
 
         .nav-link { font-size: 14px; color: #5a5a7a; text-decoration: none; transition: color 0.15s; }
         .nav-link:hover { color: #f2f2fa; }
-
-        .btn-primary {
-          display: inline-flex; align-items: center; gap: 7px;
-          padding: 13px 26px; border-radius: 12px;
-          background: #6366f1; color: #fff;
-          font-size: 15px; font-weight: 500; font-family: 'DM Sans', sans-serif;
-          text-decoration: none; border: none; cursor: pointer;
-          box-shadow: 0 4px 20px rgba(99,102,241,0.4);
-          transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
-        }
-        .btn-primary:hover { background: #5254e7; transform: translateY(-1px); box-shadow: 0 8px 28px rgba(99,102,241,0.5); }
 
         .btn-ghost {
           display: inline-flex; align-items: center; gap: 7px;
@@ -749,20 +817,36 @@ export default function Home() {
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <Link href="/login" className="nav-link" style={{ padding: '7px 14px', fontSize: 14 }}>Sign in</Link>
-          <Link href="/login" className="btn-primary" style={{ padding: '8px 18px', fontSize: 13 }}>Get started</Link>
+          <Link href="/login" className="btn-primary" style={{ padding: '8px 18px', fontSize: 13, borderRadius: 10 }}>Get started</Link>
         </div>
       </motion.nav>
 
       {/* ── HERO ──────────────────────────────────────────────── */}
-      <section style={{
-        minHeight: '100vh', background: '#0a0a0f',
-        display: 'flex', flexDirection: 'column', alignItems: 'center',
-        justifyContent: 'center', padding: '120px 32px 80px',
-        position: 'relative', overflow: 'hidden', textAlign: 'center',
-      }}>
-        {/* Blobs */}
-        <div style={{ position: 'absolute', width: 640, height: 480, borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.2) 0%, transparent 65%)', top: '-5%', left: '50%', transform: 'translateX(-50%)', filter: 'blur(50px)', pointerEvents: 'none', animation: 'blob 16s ease-in-out infinite' }} />
-        <div style={{ position: 'absolute', width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 65%)', bottom: '20%', right: '8%', filter: 'blur(40px)', pointerEvents: 'none', animation: 'blob 20s ease-in-out infinite reverse' }} />
+      <section
+        ref={heroRef}
+        onMouseMove={handleHeroMouseMove}
+        onMouseLeave={handleHeroMouseLeave}
+        style={{
+          minHeight: '100vh', background: '#0a0a0f',
+          display: 'flex', flexDirection: 'column', alignItems: 'center',
+          justifyContent: 'center', padding: '120px 32px 80px',
+          position: 'relative', overflow: 'hidden', textAlign: 'center',
+        }}
+      >
+        {/* Dot grid */}
+        <div className="hero-dot-grid" />
+
+        {/* Mouse spotlight */}
+        <div style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          background: `radial-gradient(600px circle at ${mouse.x}px ${mouse.y}px, rgba(99,102,241,0.12), transparent 40%)`,
+          transition: 'background 0.1s',
+        }} />
+
+        {/* Aurora blobs */}
+        <div style={{ position: 'absolute', width: 700, height: 520, borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.22) 0%, transparent 65%)', top: '-8%', left: '50%', transform: 'translateX(-50%)', filter: 'blur(55px)', pointerEvents: 'none', animation: 'aurora 18s ease-in-out infinite' }} />
+        <div style={{ position: 'absolute', width: 320, height: 320, borderRadius: '50%', background: 'radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 65%)', bottom: '18%', right: '6%', filter: 'blur(45px)', pointerEvents: 'none', animation: 'aurora 22s ease-in-out infinite reverse' }} />
+        <div style={{ position: 'absolute', width: 240, height: 240, borderRadius: '50%', background: 'radial-gradient(circle, rgba(236,72,153,0.08) 0%, transparent 65%)', bottom: '30%', left: '5%', filter: 'blur(40px)', pointerEvents: 'none', animation: 'aurora 26s ease-in-out infinite 4s' }} />
 
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 780 }}>
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.05 }}>
@@ -803,7 +887,7 @@ export default function Home() {
             style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 20 }}
           >
             <Link href="/login" className="btn-primary">Get started free</Link>
-            <a href="#demo" className="btn-ghost">See it in action ↓</a>
+            <a href="#demo" className="btn-rainbow-border">See it in action ↓</a>
           </motion.div>
 
           <motion.p
