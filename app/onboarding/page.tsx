@@ -147,7 +147,7 @@ export default function OnboardingPage() {
                 </div>
 
                 <a
-                  href="https://chrome.google.com/webstore"
+                  href="https://chromewebstore.google.com/detail/rekawl/ifebiknliaoebdhnofocogmimjeldfbk"
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
