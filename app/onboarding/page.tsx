@@ -270,15 +270,35 @@ export default function OnboardingPage() {
             transition={{ duration: 0.5, delay: 0.6 }}
             style={{ textAlign: 'center' }}
           >
+            <p style={{ fontSize: 12, color: '#3a3a5a', marginBottom: 12, fontFamily: "'DM Mono', monospace", letterSpacing: '0.08em' }}>
+              already installed the extension?
+            </p>
             <Link href="/dashboard" style={{
-              fontSize: 13, color: '#3a3a5a',
-              fontFamily: "'DM Mono', monospace", letterSpacing: '0.08em',
-              textDecoration: 'none', transition: 'color 0.15s',
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              padding: '11px 24px', borderRadius: 10,
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              fontSize: 14, color: '#a0a0c0', fontWeight: 500,
+              fontFamily: "'DM Sans', sans-serif",
+              textDecoration: 'none', transition: 'background 0.15s, border-color 0.15s, color 0.15s',
             }}
-              onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.color = '#8080a0')}
-              onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.color = '#3a3a5a')}
+              onMouseEnter={e => {
+                const el = e.currentTarget as HTMLAnchorElement
+                el.style.background = 'rgba(255,255,255,0.07)'
+                el.style.borderColor = 'rgba(255,255,255,0.18)'
+                el.style.color = '#d0d0f0'
+              }}
+              onMouseLeave={e => {
+                const el = e.currentTarget as HTMLAnchorElement
+                el.style.background = 'rgba(255,255,255,0.04)'
+                el.style.borderColor = 'rgba(255,255,255,0.1)'
+                el.style.color = '#a0a0c0'
+              }}
             >
-              skip → go to dashboard
+              Go to dashboard
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M3 7h8M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </Link>
           </motion.div>
         </div>
