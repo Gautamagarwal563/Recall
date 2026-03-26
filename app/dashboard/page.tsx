@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 
+const AVATAR_KEY = 'rekawl_avatar'
+
 interface Save {
   id: string
   url: string
@@ -59,31 +61,45 @@ function DashboardInner() {
   const [activeTag, setActiveTag] = useState<string | null>(null)
   const [activeType, setActiveType] = useState<'page' | 'image' | 'text' | null>(null)
   const [plan, setPlan] = useState<'free' | 'pro'>('free')
+  const [email, setEmail] = useState('')
   const [savesThisMonth, setSavesThisMonth] = useState(0)
   const [showUpgradeToast, setShowUpgradeToast] = useState(false)
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [portalLoading, setPortalLoading] = useState(false)
+  const [avatarMenuOpen, setAvatarMenuOpen] = useState(false)
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
   const searchRef = useRef<HTMLInputElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const fetchSaves = useCallback(async (q?: string, tag?: string, type?: 'page' | 'image' | 'text' | null) => {
     const params = new URLSearchParams()
     if (q) params.set('q', q)
     if (tag) params.set('tag', tag)
     if (type) params.set('type', type)
-    const res = await fetch(`/api/saves?${params}`)
-    if (res.status === 401) { router.push('/login'); return }
-    const data = await res.json()
-    setSaves(data.saves ?? [])
+    try {
+      const res = await fetch(`/api/saves?${params}`)
+      if (res.status === 401) { router.push('/login'); return }
+      const data = await res.json()
+      setSaves(data.saves ?? [])
+    } catch {
+      // ignore network errors, keep existing saves
+    }
     setLoading(false)
   }, [router])
 
   const fetchMe = useCallback(async () => {
-    const res = await fetch('/api/auth/me')
-    if (!res.ok) return
-    const data = await res.json()
-    setPlan(data.plan ?? 'free')
-    setSavesThisMonth(data.savesThisMonth ?? 0)
+    try {
+      const res = await fetch('/api/auth/me')
+      if (!res.ok) return
+      const data = await res.json()
+      setPlan(data.plan ?? 'free')
+      setSavesThisMonth(data.savesThisMonth ?? 0)
+      setEmail(data.email ?? '')
+    } catch {
+      // ignore
+    }
   }, [])
 
   useEffect(() => { fetchSaves(); fetchMe() }, [fetchSaves, fetchMe])
@@ -105,6 +121,23 @@ function DashboardInner() {
     const id = setTimeout(() => fetchSaves(search || undefined, activeTag || undefined, activeType), 5000)
     return () => clearTimeout(id)
   }, [saves, search, activeTag, activeType, fetchSaves])
+
+  // Load saved avatar from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem(AVATAR_KEY)
+    if (saved) setAvatarUrl(saved)
+  }, [])
+
+  // Close avatar menu on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setAvatarMenuOpen(false)
+      }
+    }
+    if (avatarMenuOpen) document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [avatarMenuOpen])
 
   // Global '/' to focus search
   useEffect(() => {
@@ -157,18 +190,43 @@ function DashboardInner() {
 
   const handleUpgrade = async () => {
     setCheckoutLoading(true)
-    const res = await fetch('/api/stripe/checkout', { method: 'POST' })
-    const data = await res.json()
-    if (data.url) window.location.href = data.url
-    else setCheckoutLoading(false)
+    try {
+      const res = await fetch('/api/stripe/checkout', { method: 'POST' })
+      const data = await res.json()
+      if (data.url) window.location.href = data.url
+      else setCheckoutLoading(false)
+    } catch {
+      setCheckoutLoading(false)
+    }
+  }
+
+  const handleSignOut = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' })
+    router.push('/login')
+  }
+
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const url = ev.target?.result as string
+      setAvatarUrl(url)
+      localStorage.setItem(AVATAR_KEY, url)
+    }
+    reader.readAsDataURL(file)
   }
 
   const handlePortal = async () => {
     setPortalLoading(true)
-    const res = await fetch('/api/stripe/portal', { method: 'POST' })
-    const data = await res.json()
-    if (data.url) window.location.href = data.url
-    else setPortalLoading(false)
+    try {
+      const res = await fetch('/api/stripe/portal', { method: 'POST' })
+      const data = await res.json()
+      if (data.url) window.location.href = data.url
+      else setPortalLoading(false)
+    } catch {
+      setPortalLoading(false)
+    }
   }
 
   const allTags = Array.from(new Set(saves.flatMap(s => s.tags ?? [])))
@@ -353,7 +411,7 @@ function DashboardInner() {
           </div>
 
           {/* Plan badge + avatar */}
-          <div style={{display:'flex', alignItems:'center', gap:10, flexShrink:0}}>
+          <div ref={menuRef} style={{display:'flex', alignItems:'center', gap:10, flexShrink:0, position:'relative'}}>
             {plan === 'pro' && (
               <span style={{
                 padding:'3px 9px', borderRadius:100, fontSize:9,
@@ -362,17 +420,110 @@ function DashboardInner() {
                 color:'#8b8cf8', fontFamily:"'DM Mono',monospace", letterSpacing:'0.1em',
               }}>PRO</span>
             )}
-            <div style={{
-              width:30, height:30, borderRadius:'50%', flexShrink:0,
-              background:plan==='pro'
-                ? 'linear-gradient(135deg,#6366f1,#8b5cf6)'
-                : 'linear-gradient(135deg,#1e1e38,#2a2a48)',
-              border:plan==='pro' ? '1px solid rgba(99,102,241,0.4)' : '1px solid rgba(255,255,255,0.08)',
-              display:'flex', alignItems:'center', justifyContent:'center',
-              fontSize:11, color:plan==='pro' ? '#fff' : '#3a3a5a',
-            }}>
-              {plan === 'pro' ? '✦' : ''}
-            </div>
+
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              style={{display:'none'}}
+              onChange={handleAvatarUpload}
+            />
+
+            {/* Avatar button */}
+            <button
+              onClick={() => setAvatarMenuOpen(o => !o)}
+              style={{
+                width:30, height:30, borderRadius:'50%', flexShrink:0,
+                background: avatarUrl ? 'transparent' : plan==='pro'
+                  ? 'linear-gradient(135deg,#6366f1,#8b5cf6)'
+                  : 'linear-gradient(135deg,#1e1e38,#2a2a48)',
+                border:plan==='pro' ? '1px solid rgba(99,102,241,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                display:'flex', alignItems:'center', justifyContent:'center',
+                fontSize:11, color:plan==='pro' ? '#fff' : '#3a3a5a',
+                cursor:'pointer', padding:0, overflow:'hidden',
+                transition:'opacity 0.15s',
+              }}
+            >
+              {avatarUrl
+                // eslint-disable-next-line @next/next/no-img-element
+                ? <img src={avatarUrl} alt="avatar" style={{width:'100%',height:'100%',objectFit:'cover'}} />
+                : (plan === 'pro' ? '✦' : (email ? email[0].toUpperCase() : ''))
+              }
+            </button>
+
+            {/* Dropdown */}
+            {avatarMenuOpen && (
+              <div style={{
+                position:'absolute', top:'calc(100% + 10px)', right:0,
+                width:220, borderRadius:14,
+                background:'#0f0f1e',
+                border:'1px solid rgba(255,255,255,0.1)',
+                boxShadow:'0 16px 48px rgba(0,0,0,0.6)',
+                overflow:'hidden', zIndex:200,
+                animation:'slideDown 0.2s cubic-bezier(0.22,1,0.36,1)',
+              }}>
+                {/* User info header */}
+                <div style={{padding:'14px 16px 12px', borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+                  <p style={{fontSize:12, color:'#e0e0f0', fontWeight:500, marginBottom:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>
+                    {email || 'Account'}
+                  </p>
+                  <p style={{fontSize:10, color:'#3a3a5a', fontFamily:"'DM Mono',monospace", letterSpacing:'0.06em'}}>
+                    {plan === 'pro' ? '✦ Pro plan' : 'Free plan'}
+                  </p>
+                </div>
+
+                {/* Menu items */}
+                <div style={{padding:'6px'}}>
+                  <button
+                    onClick={() => { fileInputRef.current?.click(); setAvatarMenuOpen(false) }}
+                    style={{
+                      display:'flex', alignItems:'center', gap:10,
+                      width:'100%', padding:'9px 10px', borderRadius:8,
+                      background:'none', border:'none', cursor:'pointer',
+                      color:'#9090b0', fontSize:13, fontFamily:"'DM Sans',sans-serif",
+                      textAlign:'left', transition:'background 0.15s, color 0.15s',
+                    }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background='rgba(255,255,255,0.05)'; (e.currentTarget as HTMLButtonElement).style.color='#d0d0f0' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background='none'; (e.currentTarget as HTMLButtonElement).style.color='#9090b0' }}
+                  >
+                    <span style={{fontSize:15}}>🖼</span> Upload photo
+                  </button>
+
+                  <button
+                    onClick={() => { router.push('/settings'); setAvatarMenuOpen(false) }}
+                    style={{
+                      display:'flex', alignItems:'center', gap:10,
+                      width:'100%', padding:'9px 10px', borderRadius:8,
+                      background:'none', border:'none', cursor:'pointer',
+                      color:'#9090b0', fontSize:13, fontFamily:"'DM Sans',sans-serif",
+                      textAlign:'left', transition:'background 0.15s, color 0.15s',
+                    }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background='rgba(255,255,255,0.05)'; (e.currentTarget as HTMLButtonElement).style.color='#d0d0f0' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background='none'; (e.currentTarget as HTMLButtonElement).style.color='#9090b0' }}
+                  >
+                    <span style={{fontSize:15}}>⚙</span> Settings
+                  </button>
+
+                  <div style={{height:1, background:'rgba(255,255,255,0.05)', margin:'4px 0'}} />
+
+                  <button
+                    onClick={handleSignOut}
+                    style={{
+                      display:'flex', alignItems:'center', gap:10,
+                      width:'100%', padding:'9px 10px', borderRadius:8,
+                      background:'none', border:'none', cursor:'pointer',
+                      color:'#7a3a3a', fontSize:13, fontFamily:"'DM Sans',sans-serif",
+                      textAlign:'left', transition:'background 0.15s, color 0.15s',
+                    }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background='rgba(239,68,68,0.08)'; (e.currentTarget as HTMLButtonElement).style.color='#f87171' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background='none'; (e.currentTarget as HTMLButtonElement).style.color='#7a3a3a' }}
+                  >
+                    <span style={{fontSize:15}}>→</span> Sign out
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </nav>
 
