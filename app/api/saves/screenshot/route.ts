@@ -4,6 +4,7 @@ import { getUserFromRequest } from '@/lib/auth'
 import { generateScreenshotSummary } from '@/lib/anthropic'
 
 export async function POST(req: NextRequest) {
+  try {
   const userId = await getUserFromRequest(req)
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -65,6 +66,11 @@ export async function POST(req: NextRequest) {
   processScreenshotAsync(data.id, buffer, mimeType).catch(console.error)
 
   return NextResponse.json({ id: data.id, status: 'pending' })
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('screenshot route error:', msg)
+    return NextResponse.json({ error: msg }, { status: 500 })
+  }
 }
 
 async function processScreenshotAsync(
