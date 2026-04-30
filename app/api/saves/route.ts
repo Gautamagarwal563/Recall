@@ -128,7 +128,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Default: page save
-  const { url, title } = body
+  const { url, title, context } = body
   if (!url) return NextResponse.json({ error: 'URL required' }, { status: 400 })
 
   const faviconUrl = `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=64`
@@ -141,7 +141,7 @@ export async function POST(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  processPageAsync(data.id, url, title || url).catch(console.error)
+  processPageAsync(data.id, url, title || url, context ?? '').catch(console.error)
 
   return NextResponse.json({ id: data.id, status: 'pending' })
 }
@@ -159,13 +159,18 @@ async function getSocialCaption(url: string): Promise<string> {
   } catch { return '' }
 }
 
-async function processPageAsync(saveId: string, url: string, title: string) {
+async function processPageAsync(saveId: string, url: string, title: string, shareContext = '') {
   try {
     let fullContent = await extractContent(url)
 
-    // Firecrawl can't scrape social platforms — fall back to OG description
+    // Firecrawl can't scrape social platforms — use share context or OG fallback
     if (!fullContent && /instagram\.com|tiktok\.com|threads\.net/.test(url)) {
-      fullContent = await getSocialCaption(url)
+      fullContent = shareContext || await getSocialCaption(url)
+    }
+
+    // For any save with context (caption from share sheet), prepend it
+    if (shareContext && !fullContent.includes(shareContext)) {
+      fullContent = shareContext + '\n\n' + fullContent
     }
 
     const { summary, tags } = await generateSummaryAndTags(title, fullContent, url)

@@ -161,3 +161,33 @@ Rules:
   const parsed = JSON.parse(cleaned)
   return { summary: parsed.summary, tags: parsed.tags }
 }
+
+export async function extractLocation(
+  title: string,
+  content: string
+): Promise<{ placeName: string; locationQuery: string } | null> {
+  const message = await client.messages.create({
+    model: 'claude-haiku-4-5-20251001',
+    max_tokens: 128,
+    messages: [
+      {
+        role: 'user',
+        content: `Does this content mention a specific real-world place (restaurant, venue, attraction, hotel, park) someone would physically visit?
+
+Title: ${title}
+Content: ${content.slice(0, 2000)}
+
+If YES: {"placeName":"Short display name","locationQuery":"Full geocodable string e.g. Nusantara Restaurant, Bali, Indonesia"}
+If NO: {"placeName":null,"locationQuery":null}
+
+Return ONLY the JSON object.`,
+      },
+    ],
+  })
+
+  const text = message.content[0].type === 'text' ? message.content[0].text : ''
+  const cleaned = text.replace(/^```(?:json)?\n?/m, '').replace(/\n?```$/m, '').trim()
+  const parsed = JSON.parse(cleaned)
+  if (!parsed.placeName) return null
+  return { placeName: parsed.placeName, locationQuery: parsed.locationQuery }
+}
