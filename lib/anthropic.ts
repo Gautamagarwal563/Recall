@@ -80,6 +80,49 @@ Rules:
   return { summary: parsed.summary, tags: parsed.tags }
 }
 
+export async function generateScreenshotSummary(
+  imageBase64: string,
+  mediaType: 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'
+): Promise<{ title: string; summary: string; tags: string[] }> {
+  const message = await client.messages.create({
+    model: 'claude-haiku-4-5-20251001',
+    max_tokens: 512,
+    messages: [
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'image',
+            source: { type: 'base64', media_type: mediaType, data: imageBase64 },
+          },
+          {
+            type: 'text',
+            text: `Analyze this screenshot saved by a user. Return ONLY valid JSON with no markdown.
+
+Return this exact JSON shape:
+{
+  "title": "Short descriptive title (5-8 words)",
+  "summary": "2-3 sentences describing what this screenshot shows and why it was likely saved",
+  "tags": ["tag1", "tag2", "tag3"]
+}
+
+Rules:
+- title: 5-8 words
+- summary: 2-3 sentences, plain text
+- tags: 3-5 lowercase single-word or hyphenated tags
+- Return ONLY the JSON object, no other text`,
+          },
+        ],
+      },
+    ],
+  })
+
+  const text = message.content[0].type === 'text' ? message.content[0].text : ''
+  const cleaned = text.replace(/^```(?:json)?\n?/m, '').replace(/\n?```$/m, '').trim()
+  const parsed = JSON.parse(cleaned)
+  return { title: parsed.title, summary: parsed.summary, tags: parsed.tags }
+}
+
 export async function generateSnippetTagsAndSummary(
   snippet: string,
   sourceUrl: string
