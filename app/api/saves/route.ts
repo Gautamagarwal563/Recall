@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { getUserFromRequest } from '@/lib/auth'
 import { extractContent } from '@/lib/firecrawl'
-import { generateSummaryAndTags, generateImageTagsAndSummary, generateSnippetTagsAndSummary } from '@/lib/anthropic'
+import { generateSummaryAndTags, generateImageTagsAndSummary, generateSnippetTagsAndSummary, extractLocation } from '@/lib/anthropic'
+import { geocode } from '@/lib/geocoding'
 
 export async function GET(req: NextRequest) {
   const userId = await getUserFromRequest(req)
@@ -15,7 +16,7 @@ export async function GET(req: NextRequest) {
 
   let query = supabase
     .from('saves')
-    .select('id, url, title, faviconUrl, summary, tags, status, isRead, createdAt, type, imageUrl, snippet')
+    .select('id, url, title, faviconUrl, summary, tags, status, isRead, createdAt, type, imageUrl, snippet, lat, lng, place_name')
     .eq('userId', userId)
     .order('createdAt', { ascending: false })
 
@@ -145,15 +146,46 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ id: data.id, status: 'pending' })
 }
 
+async function getSocialCaption(url: string): Promise<string> {
+  try {
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'facebookexternalhit/1.1' },
+      signal: AbortSignal.timeout(6000),
+    })
+    const html = await res.text()
+    const m = html.match(/<meta[^>]+(?:property="og:description"|name="description")[^>]+content="([^"]*)"/)
+               ?? html.match(/<meta[^>]+content="([^"]*)"[^>]+(?:property="og:description"|name="description")/)
+    return m ? m[1].replace(/&#(\d+);/g, (_, n) => String.fromCharCode(n)).replace(/&amp;/g, '&').replace(/&quot;/g, '"') : ''
+  } catch { return '' }
+}
+
 async function processPageAsync(saveId: string, url: string, title: string) {
   try {
-    const fullContent = await extractContent(url)
+    let fullContent = await extractContent(url)
+
+    // Firecrawl can't scrape social platforms — fall back to OG description
+    if (!fullContent && /instagram\.com|tiktok\.com|threads\.net/.test(url)) {
+      fullContent = await getSocialCaption(url)
+    }
+
     const { summary, tags } = await generateSummaryAndTags(title, fullContent, url)
 
     await supabase
       .from('saves')
       .update({ fullContent, summary, tags, status: 'processed' })
       .eq('id', saveId)
+
+    // Best-effort location extraction — use full content when available for social posts
+    const locationContext = fullContent || summary
+    const loc = await extractLocation(title, locationContext).catch(() => null)
+    if (loc) {
+      const coords = await geocode(loc.locationQuery).catch(() => null)
+      if (coords) {
+        await supabase.from('saves')
+          .update({ place_name: loc.placeName, lat: coords.lat, lng: coords.lng })
+          .eq('id', saveId)
+      }
+    }
   } catch (err) {
     console.error('Processing failed for save', saveId, err)
     await supabase.from('saves').update({ status: 'failed' }).eq('id', saveId)
