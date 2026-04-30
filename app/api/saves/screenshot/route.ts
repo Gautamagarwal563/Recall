@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     .from('saves')
     .insert({
       userId,
-      type: 'screenshot',
+      type: 'image',
       url: imageUrl ?? `rekawl://screenshot/${Date.now()}`,
       title: 'Screenshot',
       imageUrl,
