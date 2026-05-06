@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "app/api/saves/route.ts": {
+      "maxDuration": 60
+    },
+    "app/api/saves/screenshot/route.ts": {
+      "maxDuration": 60
+    }
+  }
+}

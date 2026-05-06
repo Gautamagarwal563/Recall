@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { getUserFromRequest } from '@/lib/auth'
 import { extractContent } from '@/lib/firecrawl'
@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-    processImageAsync(data.id, imageUrl, sourceUrl).catch(console.error)
+    after(async () => { await processImageAsync(data.id, imageUrl, sourceUrl).catch(console.error) })
 
     return NextResponse.json({ id: data.id, status: 'pending' })
   }
@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-    processSnippetAsync(data.id, snippet, sourceUrl).catch(console.error)
+    after(async () => { await processSnippetAsync(data.id, snippet, sourceUrl).catch(console.error) })
 
     return NextResponse.json({ id: data.id, status: 'pending' })
   }
@@ -141,7 +141,7 @@ export async function POST(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  processPageAsync(data.id, url, title || url, context ?? '').catch(console.error)
+  after(async () => { await processPageAsync(data.id, url, title || url, context ?? '').catch(console.error) })
 
   return NextResponse.json({ id: data.id, status: 'pending' })
 }
