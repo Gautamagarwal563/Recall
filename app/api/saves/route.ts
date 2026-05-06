@@ -180,8 +180,22 @@ async function processPageAsync(saveId: string, url: string, title: string, shar
       .update({ fullContent, summary, tags, status: 'processed' })
       .eq('id', saveId)
 
-    // Best-effort location extraction — use full content when available for social posts
-    const locationContext = fullContent || summary
+    // If user typed an explicit place name in the share sheet, geocode it directly
+    const looksLikePlace = (s: string) =>
+      s.length > 0 && s.length < 80 && !s.startsWith('http') && !/[.!?]$/.test(s.trim())
+
+    if (shareContext && looksLikePlace(shareContext)) {
+      const coords = await geocode(shareContext).catch(() => null)
+      if (coords) {
+        await supabase.from('saves')
+          .update({ place_name: shareContext, lat: coords.lat, lng: coords.lng })
+          .eq('id', saveId)
+        return
+      }
+    }
+
+    // Fall through: ask Claude to extract a location from available content
+    const locationContext = [shareContext, fullContent, summary].filter(Boolean).join('\n\n')
     const loc = await extractLocation(title, locationContext).catch(() => null)
     if (loc) {
       const coords = await geocode(loc.locationQuery).catch(() => null)

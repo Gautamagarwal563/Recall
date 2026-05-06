@@ -172,7 +172,7 @@ export async function extractLocation(
     messages: [
       {
         role: 'user',
-        content: `Does this content mention a specific real-world place (restaurant, venue, attraction, hotel, park) someone would physically visit?
+        content: `Does this content mention a specific real-world place (restaurant, venue, attraction, hotel, park) someone would physically visit? The content might be a full article, a social post caption, or just a place name typed by the user (e.g. "Nobu" or "Sketch London") — if so, treat it as the place.
 
 Title: ${title}
 Content: ${content.slice(0, 2000)}
